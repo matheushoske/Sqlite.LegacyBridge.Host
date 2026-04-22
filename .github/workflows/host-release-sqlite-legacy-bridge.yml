@@ -47,6 +47,14 @@ jobs:
             "tag=$generatedTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           }
 
+      - name: Pack release zip
+        run: |
+          New-Item -ItemType Directory -Path dist -Force | Out-Null
+          $zipName = "Sqlite.LegacyBridge.Host-${{ steps.release_tag.outputs.tag }}-net462.zip"
+          $zipPath = Join-Path "dist" $zipName
+          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+          Compress-Archive -Path "artifacts\\*" -DestinationPath $zipPath -CompressionLevel Optimal
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
@@ -54,5 +62,5 @@ jobs:
           target_commitish: ${{ github.sha }}
           name: ${{ steps.release_tag.outputs.tag }}
           generate_release_notes: true
-          files: artifacts/**
+          files: dist/*.zip
 
