@@ -50,7 +50,7 @@ jobs:
       - name: Pack release zip
         run: |
           New-Item -ItemType Directory -Path dist -Force | Out-Null
-          $zipName = "Sqlite.LegacyBridge.Host-${{ steps.release_tag.outputs.tag }}-net462.zip"
+          $zipName = "Sqlite.LegacyBridge.Host.zip"
           $zipPath = Join-Path "dist" $zipName
           if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
           Compress-Archive -Path "artifacts\\*" -DestinationPath $zipPath -CompressionLevel Optimal
