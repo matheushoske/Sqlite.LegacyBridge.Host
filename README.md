@@ -4,8 +4,8 @@ Binary-focused repository for the .NET Framework host that opens legacy encrypte
 
 ## Contains
 
-- `src/Plu.Sqlite.LegacyBridge.Host`
-- `src/Plu.Sqlite.LegacyBridge.Protocol`
+- `src/Sqlite.LegacyBridge.Host`
+- `src/Sqlite.LegacyBridge.Protocol`
 
 ## Release
 

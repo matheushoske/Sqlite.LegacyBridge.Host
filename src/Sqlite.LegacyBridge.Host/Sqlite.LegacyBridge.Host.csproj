@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Plu.Sqlite.LegacyBridge.Protocol\Sqlite.LegacyBridge.Protocol.csproj" />
+    <ProjectReference Include="..\Sqlite.LegacyBridge.Protocol\Sqlite.LegacyBridge.Protocol.csproj" />
   </ItemGroup>
 
   <ItemGroup>
