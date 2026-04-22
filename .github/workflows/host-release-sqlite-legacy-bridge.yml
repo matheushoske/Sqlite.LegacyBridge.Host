@@ -2,9 +2,15 @@ name: Host Release
 
 on:
   push:
+    branches:
+      - master
+      - main
     tags:
       - "host-v*"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-host:
@@ -31,11 +37,22 @@ jobs:
           New-Item -ItemType Directory -Path artifacts -Force | Out-Null
           Copy-Item "src/Sqlite.LegacyBridge.Host/bin/Release/net462/*" "artifacts/" -Recurse -Force
 
+      - name: Resolve release tag
+        id: release_tag
+        run: |
+          if ("${{ github.ref }}".StartsWith("refs/tags/")) {
+            "tag=${{ github.ref_name }}" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          } else {
+            $generatedTag = "host-v$(Get-Date -Format 'yyyy.MM.dd.HHmmss')"
+            "tag=$generatedTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
+
       - name: Create GitHub release
-        if: startsWith(github.ref, 'refs/tags/host-v')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ steps.release_tag.outputs.tag }}
           generate_release_notes: true
           files: artifacts/**
 
