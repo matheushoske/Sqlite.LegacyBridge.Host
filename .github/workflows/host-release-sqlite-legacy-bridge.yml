@@ -32,6 +32,13 @@ jobs:
       - name: Build host release
         run: dotnet build "src/Sqlite.LegacyBridge.Host/Sqlite.LegacyBridge.Host.csproj" -c Release --no-restore
 
+      - name: Validate net462 host output
+        run: |
+          $hostExe = "src/Sqlite.LegacyBridge.Host/bin/Release/net462/Sqlite.LegacyBridge.Host.exe"
+          if (-not (Test-Path $hostExe)) {
+            throw "Build inválido: não encontrou $hostExe"
+          }
+
       - name: Prepare artifact folder
         run: |
           New-Item -ItemType Directory -Path artifacts -Force | Out-Null
