@@ -1,34 +1,53 @@
 # Sqlite.LegacyBridge.Host
 
-`Sqlite.LegacyBridge.Host` is the .NET Framework executable that opens the legacy encrypted SQLite database with `System.Data.SQLite` and serves requests over named pipes.
+Compatibility host process for encrypted legacy SQLite access in environments that depend on `System.Data.SQLite` behavior.
 
-## Usage
+## Runtime purpose
+
+This executable is responsible for:
+
+- opening legacy encrypted databases (including RC4/RSA-era compatibility profiles)
+- executing SQL operations requested by the client bridge
+- returning results through a stable named-pipe protocol
+
+## Typical startup contract
 
 ```powershell
 Sqlite.LegacyBridge.Host.exe --pipe <pipe_name> --database <path_to_db>
 ```
 
-Environment variables:
+## Configuration surface
 
-- `PLU_SQLITE_PASSWORD`: password used to open the database.
-- `PLU_SQLITE_DB`: optional fallback database path.
+- `PLU_SQLITE_PASSWORD`: database password for encrypted files
+- `PLU_SQLITE_DB`: fallback path when database is not passed as argument
 
-## Protocol
+## Lifecycle
 
-- Host sends `PLU_LEGACY_BRIDGE_READY`.
-- Client replies with `PLU_LEGACY_CLIENT_ACK`.
-- Communication continues as line-delimited JSON (NDJSON).
+1. Process starts and initializes pipe server
+2. Readiness signal is emitted
+3. Client acknowledgment is received
+4. Request loop processes NDJSON commands
+5. Process exits when session is closed/terminated
 
-## Release artifact expectations
+## Integration path (recommended)
 
-- Release package should include:
-  - `Sqlite.LegacyBridge.Host.exe`
-  - required `System.Data.SQLite` native files (`SQLite.Interop.dll` etc.)
-- Recommended release matrix includes `x86` and optional `x64` where supported.
+Most consumers should not manage this executable directly.  
+Preferred flow:
+
+1. Install `EntityFrameworkCore.Sqlite.Legacy` (or `.Ef31`)
+2. Run `SqliteLegacyDbContextOptionsExtensions.SetupBridgeHost()`
+3. Configure EF with `UseSqliteLegacy(...)`
+
+## Deployment notes
+
+- Keep host and native SQLite binaries in the same `legacy/` folder
+- Respect architecture constraints from native provider distribution
+- For locked-down environments, pre-distribute host release ZIP internally
 
 ## Troubleshooting
 
-- If startup hangs, verify antivirus exclusions and pipe accessibility.
-- If DB open fails (`file is not a database`), validate password/encryption compatibility.
-- If process exits immediately, verify native SQLite runtime files are present.
+- **Startup hang**: check pipe permission/collision and process block by security software.
+- **`file is not a database`**: verify file path, encryption profile, and password.
+- **Exit on boot**: missing native binaries or architecture mismatch.
+- **Interop errors**: ensure all binaries are built for compatible architecture (`x86` commonly required in old stacks).
 
